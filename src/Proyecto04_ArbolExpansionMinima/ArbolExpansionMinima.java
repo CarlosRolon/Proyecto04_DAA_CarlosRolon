@@ -5,16 +5,22 @@
  */
 package Proyecto04_ArbolExpansionMinima;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 /**
  *
  * @author Carlos Rolon
  */
 public class ArbolExpansionMinima {
+    
+    
     
     public static  HashMap<Integer,HashMap<Integer, Integer>>  KruskalD( HashMap<Integer,HashMap<Integer, Integer>> grafo){
         HashMap<Integer , Integer> conjuntosArbol  = new HashMap<>();
@@ -60,45 +66,95 @@ public class ArbolExpansionMinima {
     
     public static  HashMap<Integer,HashMap<Integer, Integer>>  KruskalI( HashMap<Integer,HashMap<Integer, Integer>> grafo){
         HashMap<Integer,HashMap<Integer,Integer>> arbol =  copiarGrafo(grafo);        
-        int nodoActual;
-        int conjuntoActual;
-        
-        /*for (Map.Entry n : grafo.entrySet()) {
-            nodoActual = (Integer) n.getKey();
-            HashMap<Integer , Integer> ini  = new HashMap<>();
-            arbol.put(nodoActual ,ini);
-        }*/
-
+        HashMap<Integer,HashMap<Integer,Integer>> arbolBase  ;      
         Queue<Arista> aristas = ObtenerAristasDesc(grafo);
-
-        /*
-        for (Arista elemento : aristas)
-        {
-            System.out.println(elemento.peso + "-");
-        }
-        */
-
-        
+      
         while(!aristas.isEmpty())
         {
             Arista aristaActual = aristas.peek();
             aristas.poll();
+            arbolBase =  copiarGrafo(arbol);  
             //System.out.println(aristaActual.peso + "-");
             if (arbol.containsKey(aristaActual.nodoOrigen)) {
+                
                 HashMap<Integer, Integer> nodoOrigen  = arbol.get(aristaActual.nodoOrigen);
-                if (nodoOrigen.size() > 1) {
-                    if (nodoOrigen.containsKey(aristaActual.nodoDestino)) {
-                        nodoOrigen.remove(aristaActual.nodoDestino);
-                        //System.out.println(aristaActual.nodoOrigen + "-" + aristaActual.nodoDestino );
-                    }
+               
+                if (nodoOrigen.containsKey(aristaActual.nodoDestino)) {
                     
+                    nodoOrigen.remove(aristaActual.nodoDestino);
+                    if ( !BFS_Metodo( arbol , aristaActual.nodoOrigen , aristaActual.nodoDestino  )  ) {
+                        arbol = arbolBase;
+                    }
                 }
-            }
+            } 
            
         }
         
         return arbol;
     }
+    
+    public static  HashMap<Integer,HashMap<Integer, Integer>>  Prim( HashMap<Integer,HashMap<Integer, Integer>> grafo){
+        HashMap<Integer,HashMap<Integer, Integer>> arbol  = new HashMap<>();
+        HashMap<Integer, Integer> vertices  = new HashMap<>();
+        List <Integer> nodosSinVisitar = new ArrayList<Integer>();
+        List <Arista> aristasDisponibles = new ArrayList<Arista>();
+        int nodoActual , pos;
+        
+        // Inicializa el grafo e inicializa los conjuntos de cada nodo
+        for (Map.Entry n : grafo.entrySet()) {
+            nodoActual = (Integer) n.getKey();
+            HashMap<Integer , Integer> ini  = new HashMap<>();
+            arbol.put(nodoActual ,ini);
+            nodosSinVisitar.add(nodoActual);
+        }
+        
+        pos = (int)(Math.random()*nodosSinVisitar.size());
+        nodoActual = nodosSinVisitar.get(pos);
+        nodosSinVisitar.remove(pos);
+        vertices = grafo.get( nodoActual );
+  
+        for (Map.Entry n : vertices.entrySet()) {
+            Arista conexion = new Arista();
+            conexion.nodoOrigen = nodoActual;
+            conexion.nodoDestino = (Integer) n.getKey();
+            conexion.peso = (Integer) n.getValue();
+            aristasDisponibles.add(conexion);
+        }
+
+        List <Arista> aristasPorVisitar = ordenarAristasAsc(aristasDisponibles);
+        Arista nodo = new Arista();
+
+        
+        while(aristasPorVisitar.size() > 0){
+            nodo = aristasPorVisitar.get(0);
+            aristasPorVisitar.remove(0);
+            
+            pos  = nodosSinVisitar.indexOf(nodo.nodoDestino);
+
+            if ( pos >= 0) {
+                
+                arbol.get( nodo.nodoOrigen ).put( nodo.nodoDestino , nodo.peso );
+                arbol.get( nodo.nodoDestino ).put( nodo.nodoOrigen , nodo.peso );
+                nodosSinVisitar.remove(pos);
+                vertices = grafo.get( nodo.nodoDestino );
+                
+                for (Map.Entry n : vertices.entrySet()) {
+                    Arista conexion = new Arista();
+                    conexion.nodoOrigen = nodo.nodoDestino;
+                    conexion.nodoDestino = (Integer) n.getKey();
+                    conexion.peso = (Integer) n.getValue();
+                    aristasDisponibles.add(conexion);
+                }
+                 
+                aristasPorVisitar = ordenarAristasAsc(aristasDisponibles);
+                
+                
+            }
+        }
+        
+        return arbol;
+    }
+    
     
     private static Queue<Arista> ObtenerAristasAsc(HashMap<Integer,HashMap<Integer,Integer>> _grafo) 
     {
@@ -176,7 +232,57 @@ public class ArbolExpansionMinima {
         return aristasOrdenadasAsc;        
     }
     
+    private static Boolean  BFS_Metodo ( HashMap<Integer,HashMap<Integer,Integer>> grafo, int nodoInicio , int nodoFin) {      
+
+        List<Integer> visitado = new ArrayList<>();
+        int nodo;
+        visitado.add(nodoInicio);
+        
+         if ( nodoFin == nodoInicio ) {
+                return true;
+         }
+               
+        for( int i = 0 ; i < visitado.size() ; i++){           
+            Set<Integer> conexiones = new HashSet<>();
+            HashMap<Integer,Integer> adyacentes = grafo.get(visitado.get(i));
+
+            for(Map.Entry a: adyacentes.entrySet()){   
+                nodo = (int) a.getKey();
+                if( !visitado.contains(nodo)){
+                    visitado.add(nodo);
+                    conexiones.add(nodo);
+                    
+                    if ( nodoFin == nodo ) {
+                        return true;
+                    }
+                }
+            }
+            
+        }
+        return false;
+    }
     
+    private static List<Arista> ordenarAristasAsc(List<Arista> _aristasDesordenadas){
+        List<Arista> aristasDesordenadas = new ArrayList<Arista>(_aristasDesordenadas);
+        List<Arista> aristasOrdenadas = new ArrayList<Arista>();
+        int nodoMenor = 0;
+        
+        while(aristasDesordenadas.size() > 0){
+            Arista a = aristasDesordenadas.get(0);
+            nodoMenor = 0;
+            for (int i = 1; i < aristasDesordenadas.size(); i++) {
+                Arista temp = aristasDesordenadas.get(i);
+                if (temp.peso < a.peso) {
+                    a = temp;
+                    nodoMenor = i;
+                }
+            }
+            aristasDesordenadas.remove(nodoMenor);
+            aristasOrdenadas.add(a);
+        }
+        return aristasOrdenadas;
+    }
+     
     public static HashMap<Integer,HashMap<Integer, Integer>>  copiarGrafo( HashMap<Integer,HashMap<Integer, Integer>> _grafo){
         HashMap<Integer,HashMap<Integer,Integer>> grafo = new HashMap<Integer,HashMap<Integer,Integer>>();
         int nodoOrigen ;
@@ -189,4 +295,7 @@ public class ArbolExpansionMinima {
         
         return grafo;
     }
+
+
+   
 }
