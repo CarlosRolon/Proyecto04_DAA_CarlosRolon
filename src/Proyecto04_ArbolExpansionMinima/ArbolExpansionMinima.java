@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public class ArbolExpansionMinima {
     
-    
+    // Kruskal Directo
     
     public static  HashMap<Integer,HashMap<Integer, Integer>>  KruskalD( HashMap<Integer,HashMap<Integer, Integer>> grafo){
         HashMap<Integer , Integer> conjuntosArbol  = new HashMap<>();
