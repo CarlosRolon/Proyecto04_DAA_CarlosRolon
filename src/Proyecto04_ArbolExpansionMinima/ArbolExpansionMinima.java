@@ -178,6 +178,22 @@ public class ArbolExpansionMinima {
         return arbol;
     }
     
+    public static Integer MST( HashMap<Integer,HashMap<Integer, Integer>>  arbol){
+        int valor = 0;
+        
+        // Recore el grafo
+        for (Map.Entry n : arbol.entrySet()) {
+            // Obtiene el nodo
+            HashMap<Integer , Integer> aristas  = (HashMap<Integer , Integer>) n.getValue();
+            // Recorre cada conexion
+            for (Map.Entry a: aristas.entrySet()) {
+                // Suma los pesos de la arista
+                valor += (Integer) a.getValue();
+            }
+        }
+        // Divide el valor entre 2 ya que es un arbol  con doble conexion no dirigido
+        return valor  / 2;
+    }
     
     private static Queue<Arista> ObtenerAristasAsc(HashMap<Integer,HashMap<Integer,Integer>> _grafo) 
     {
